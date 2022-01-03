@@ -35,13 +35,16 @@ export default {
       }
   },
   methods: {
+    
       async handleSubmit(){
-        const password = CryptoJS.AES.encrypt(this.password, 'secret key 123')
+        const AES_KEY = "qq3217834abcdefg"; //16-bit
+        const AES_IV = "1234567890123456";  //16-bit
+        const password =this.password;
   
         try{
           const response = await axios.post('login',{
             email: this.email, 
-            password: CryptoJS.AES.decrypt(password.toString(), 'secret key 123').toString(CryptoJS.enc.Utf8)
+            password: aes_encrypt(password)
             });
               console.log(response)
               
@@ -54,8 +57,12 @@ export default {
             this.error = 'Invalid email/password'
         }
 
-   
+      function aes_encrypt(password) {
+          var encrypted = CryptoJS.AES.encrypt(password, CryptoJS.enc.Utf8.parse(AES_KEY), {iv:  CryptoJS.enc.Utf8.parse(AES_IV)});
+         return CryptoJS.enc.Base64.stringify(encrypted.ciphertext);
+        }
       },
+      
        //Set cookie method
             setCookie(email, password, days) {
                 var text = CryptoJS.AES.encrypt(password, 'secret key 123');//Use CryptoJS method to encrypt
