@@ -36,19 +36,21 @@ export default {
   },
   methods: {
       async handleSubmit(){
-        const data = {
-              email: this.email,
-              password: this.password
-        }
+        const password = CryptoJS.AES.encrypt(this.password, 'secret key 123')
+  
         try{
-          const response = await axios.post('login',data)
-              console.log('success')
-              this.setCookie(this.email, this.password, 7)
+          const response = await axios.post('login',{
+            email: this.email, 
+            password: CryptoJS.AES.decrypt(password.toString(), 'secret key 123').toString(CryptoJS.enc.Utf8)
+            });
+              console.log(response)
+              
               localStorage.setItem('token', response.data.token);
               this.$store.dispatch('user', response.data.user);
                this.$router.push('/');
          
         }catch (e){
+          console.log(e);
             this.error = 'Invalid email/password'
         }
 
