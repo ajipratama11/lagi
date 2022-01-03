@@ -36,21 +36,18 @@ export default {
   },
   methods: {
       async handleSubmit(){
-        if(this.email.includes("gmail"))
-{
-  this.error = "Gaoleh grtais";
-}
-
-        try{
-          const response = await axios.post('login',{
+        const data = {
               email: this.email,
               password: this.password
-          });
-          this.setCookie(this.email, this.password, 7);
-          localStorage.setItem('token', response.data.token);
-          this.$store.dispatch('user', response.data.user);
-          this.$router.push('/');
-          console.log(response);
+        }
+        try{
+          const response = await axios.post('login',data)
+              console.log('success')
+              this.setCookie(this.email, this.password, 7)
+              localStorage.setItem('token', response.data.token);
+              this.$store.dispatch('user', response.data.user);
+               this.$router.push('/');
+         
         }catch (e){
             this.error = 'Invalid email/password'
         }
@@ -59,12 +56,12 @@ export default {
       },
        //Set cookie method
             setCookie(email, password, days) {
-                CryptoJS.AES.encrypt(password, 'secret key 123');//Use CryptoJS method to encrypt
+                var text = CryptoJS.AES.encrypt(password, 'secret key 123');//Use CryptoJS method to encrypt
                 var saveDays = new Date(); //Get Time
                 saveDays.setTime( 24 * 60 * 60 * 1000 * days); //Number of days saved
                 //String splicing and storing in cookie
                 window.document.cookie = "email" + "=" + email + ";path=/;saveDays=" + saveDays.toGMTString();
-                window.document.cookie = "password" + "=" + password + ";path=/;saveDays=" + saveDays.toGMTString();
+                window.document.cookie = "password" + "=" + text + ";path=/;saveDays=" + saveDays.toGMTString();
             },
             //Read cookie
             getCookie() {
