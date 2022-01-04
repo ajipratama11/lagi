@@ -48,7 +48,6 @@ export default {
   },
   methods: {
     async handleSubmit() {
-      const password = this.password;
       let encryptor = new JSEncrypt(); // New JSEncrypt Object
 
       let publicKey = `MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgFR3ZVqHiPr/KuHtMGRHtGbRR5Xl
