@@ -1,100 +1,77 @@
 <template>
   <div class="login">
-  <form @submit.prevent="handleSubmit">
-   <error v-if="error" :error="error" />
-  <div class="mb-3">
-    <label for="exampleInputEmail1" class="form-label">Email address</label>
-    <input type="email" class="form-control" v-model="email" id="exampleInputEmail1" aria-describedby="emailHelp">
-  </div>
-  <div class="mb-3">
-    <label for="exampleInputPassword1" class="form-label">Password</label>
-    <input type="password" class="form-control" v-model="password" id="exampleInputPassword1">
-  </div>
-  <button type="submit" class="btn btn-primary">Submit</button>
-  <router-link to="/forgot"></router-link>
-</form>
+    <form @submit.prevent="handleSubmit">
+      <error v-if="error" :error="error" />
+      <div class="mb-3">
+        <label for="exampleInputEmail1" class="form-label">Email address</label>
+        <input
+          type="email"
+          class="form-control"
+          v-model="email"
+          id="exampleInputEmail1"
+          aria-describedby="emailHelp"
+        />
+      </div>
+      <div class="mb-3">
+        <label for="exampleInputPassword1" class="form-label">Password</label>
+        <input
+          type="password"
+          class="form-control"
+          v-model="password"
+          id="exampleInputPassword1"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+      <router-link to="/forgot"></router-link>
+    </form>
   </div>
 </template>
 
-<script >
+<script>
 // @ is an alias to /src
-import Error from '@/components/Error.vue'
-import axios from 'axios'
-import CryptoJS from 'crypto-js' //Encryption js
+import Error from "@/components/Error.vue";
+import axios from "axios";
+import JSEncrypt from "jsencrypt/bin/jsencrypt";
+
 export default {
-  name: 'Login',
+  name: "Login",
   components: {
     // VueRecaptcha
-    Error
+    Error,
   },
-  data(){
-      return {
-          email: '',
-          password: '',
-          error: ''
-      }
+  data() {
+    return {
+      email: "",
+      password: "",
+      error: "",
+    };
   },
   methods: {
-    
-      async handleSubmit(){
-        const AES_KEY = "qq3217834abcdefg"; //16-bit
-        const AES_IV = "1234567890123456";  //16-bit
-        const password =this.password;
-  
-        try{
-          const response = await axios.post('login',{
-            email: this.email, 
-            password: aes_encrypt(password)
-            });
-              console.log(response)
-              
-              localStorage.setItem('token', response.data.token);
-              this.$store.dispatch('user', response.data.user);
-               this.$router.push('/');
-         
-        }catch (e){
-          console.log(e);
-            this.error = 'Invalid email/password'
-        }
+    async handleSubmit() {
+      const password = this.password;
+      let encryptor = new JSEncrypt(); // New JSEncrypt Object
 
-      function aes_encrypt(password) {
-          var encrypted = CryptoJS.AES.encrypt(password, CryptoJS.enc.Utf8.parse(AES_KEY), {iv:  CryptoJS.enc.Utf8.parse(AES_IV)});
-         return CryptoJS.enc.Base64.stringify(encrypted.ciphertext);
-        }
-      },
-      
-       //Set cookie method
-            setCookie(email, password, days) {
-                var text = CryptoJS.AES.encrypt(password, 'secret key 123');//Use CryptoJS method to encrypt
-                var saveDays = new Date(); //Get Time
-                saveDays.setTime( 24 * 60 * 60 * 1000 * days); //Number of days saved
-                //String splicing and storing in cookie
-                window.document.cookie = "email" + "=" + email + ";path=/;saveDays=" + saveDays.toGMTString();
-                window.document.cookie = "password" + "=" + text + ";path=/;saveDays=" + saveDays.toGMTString();
-            },
-            //Read cookie
-            getCookie() {
-                if (document.cookie.length > 0) {
-                    var arr = document.cookie.split('; '); //The format shown here needs to be cut and can be output by yourself.
-                    for (var i = 0; i < arr.length; i++) { 
-                        var arr2 = arr[i].split('='); //Cut again
-                        //This will cut out the array with mobile as the 0th item and the array with password as the 0th item, and judge the corresponding value
-                        if (arr2[0] == 'email') {
-                            this.email = arr2[1]; //Get account
-                        } else if (arr2[0] == 'password') {
-                            //Get the encrypted password arr2[1] and decrypt it
-                            var bytes = CryptoJS.AES.decrypt(arr2[1].toString(), 'secret key 123');
-                            var plaintext = bytes.toString(CryptoJS.enc.Utf8); //Get the decrypted password (the password entered when logging in)
-                            this.password = plaintext;
-                        }
-                    }
-                }
-            },
-            //Clear cookie
-            clearCookie() {
-                this.setCookie("", "", 0); //Leave the account password blank, and set the number of days to 0
-            }
-      
-  }
-}
+      let publicKey = `MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgFR3ZVqHiPr/KuHtMGRHtGbRR5Xl
+5RKazlKqQhdSIl8yySCaL3YwVKWUQ+BgXIMy8y+3c6qwpECh3Mf4VzeqHidJC7N9
+HuoLJPbxdkqx/wHCc+F1EfQDLc2qofV1R/SuJVFx7GsSez+cqJYMykaZLCwFYetz
+k1+Q2tGlKXoUbwKlAgMBAAE=`; //Paste in previous generations, which can be passed in from the background during actual development
+
+      encryptor.setPublicKey(publicKey); // Set Public Key
+
+      try {
+        const response = await axios.post("login", {
+          email: this.email,
+          password: encryptor.encrypt(this.password),
+        });
+        console.log(response);
+        localStorage.setItem("token", response.data.token);
+        this.$store.dispatch("user", response.data.user);
+        this.$router.push("/");
+      } catch (e) {
+        console.log(e);
+        this.error = "Invalid email/password";
+      }
+    },
+  },
+};
 </script>
